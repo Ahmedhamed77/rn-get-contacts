@@ -1,6 +1,6 @@
 {
   "name": "rn-get-contacts",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "this is a native package to read contacts only",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
