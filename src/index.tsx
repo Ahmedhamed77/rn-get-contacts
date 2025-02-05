@@ -17,6 +17,13 @@ const RnGetContacts = NativeModules.RnGetContacts
       }
     );
 
-export function multiply(a: number, b: number): Promise<number> {
-  return RnGetContacts.multiply(a, b);
+export interface Contact {
+  id: string;
+  name: string;
+  numbers: string[];
+  emails: string[];
+}
+
+export function getContacts(): Promise<Contact[]> {
+  return RnGetContacts.getContacts();
 }
