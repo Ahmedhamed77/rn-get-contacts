@@ -27,36 +27,49 @@ import {
   Pressable,
   PermissionsAndroid,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function App() {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   async function fetchContacts() {
     try {
-      const contacts = await getContacts();
-      console.log('Contacts:', contacts);
-    } catch (error) {
-      console.error('Error fetching contacts:', error);
+      await getContacts();
+    } catch (err: any) {
+      const errorMessage = err.message || 'Unknown error occurred';
+      setError(errorMessage);
+      console.error('Error fetching contacts:', err);
     }
   }
 
   const getAllContacts = async () => {
+    setLoading(true);
+    setError(null);
+
     if (Platform.OS === 'ios') {
       await fetchContacts();
     } else {
-      PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_CONTACTS, {
-        title: 'Contacts',
-        message: 'This app would like to view your contacts.',
-        buttonPositive: 'Please accept bare mortal',
-      })
-        .then((res) => {
-          console.log('Permission: ', res);
-          fetchContacts();
-        })
-        .catch((error) => {
-          console.error('Permission error: ', error);
-        });
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.READ_CONTACTS,
+        {
+          title: 'Contacts Permission',
+          message: 'This app needs access to your contacts.',
+          buttonPositive: 'Allow',
+          buttonNegative: 'Deny',
+        }
+      );
+
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        await fetchContacts();
+      } else {
+        setError('Contacts permission denied');
+      }
     }
+
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -65,7 +78,19 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <Text>weclome the useEffect will run to get contacts</Text>
+      <Text style={styles.title}>Welcome</Text>
+
+      {loading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : error ? (
+        <Text style={styles.errorText}>{error}</Text>
+      ) : (
+        <Text style={styles.successText}>Contacts fetched successfully!</Text>
+      )}
+
+      <Pressable style={styles.button} onPress={getAllContacts}>
+        <Text style={styles.buttonText}>Fetch Contacts</Text>
+      </Pressable>
     </View>
   );
 }
@@ -75,12 +100,38 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    padding: 20,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  successText: {
+    fontSize: 16,
+    marginVertical: 20,
+    textAlign: 'center',
+    color: 'green',
+  },
+  errorText: {
+    fontSize: 16,
+    marginVertical: 20,
+    textAlign: 'center',
+    color: 'red',
+  },
+  button: {
+    backgroundColor: '#007BFF',
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 8,
+    marginTop: 20,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
-
-
-// ...
-
 
 
 ```
